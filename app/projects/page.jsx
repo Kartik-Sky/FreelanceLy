@@ -135,7 +135,7 @@ export default function ProjectsPage() {
                 New Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-white">
               <DialogHeader>
                 <DialogTitle>Create New Project</DialogTitle>
                 <DialogDescription>Add a new project to track time and expenses.</DialogDescription>

@@ -46,7 +46,15 @@ export default function ClientsPage() {
   )
 
   const handleAddClient = () => {
-    // Add client logic
+    const newClientData = {
+      id: clients.length + 1,
+      name: newClient.name,
+      email: newClient.email,
+      projects: 0,
+      totalBilled: 0,
+      status: "Active",
+    }
+    setClients([...clients, newClientData])
     setIsAddDialogOpen(false)
     setNewClient({ name: "", email: "", phone: "", company: "", address: "" })
   }
@@ -67,7 +75,7 @@ export default function ClientsPage() {
                 Add Client
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-white">
               <DialogHeader>
                 <DialogTitle>Add New Client</DialogTitle>
                 <DialogDescription>Create a new client profile for your business.</DialogDescription>

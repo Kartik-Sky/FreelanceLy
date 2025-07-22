@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CheckCircle, Clock, DollarSign, FileText, TrendingUp, Users, ArrowRight, Star } from "lucide-react"
+import { CheckCircle, Clock, DollarSign, FileText, TrendingUp, Users, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -81,9 +80,6 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
-          <Badge variant="secondary" className="mb-4">
-            Trusted by 10,000+ freelancers
-          </Badge>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             Time Tracking & Invoicing
             <span className="text-blue-600 block">Made Simple</span>
@@ -94,13 +90,10 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/signup">
               <Button size="lg" className="text-lg px-8 py-3">
-                Start Free Trial
+                Sign Up
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-3 bg-transparent">
-              Watch Demo
-            </Button>
           </div>
           <div className="max-w-4xl mx-auto">
             <Image
@@ -223,34 +216,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 px-4 bg-slate-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What our users say</h2>
-            <p className="text-xl text-gray-600">Join thousands of satisfied freelancers and small business owners</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 mb-4 italic">"{testimonial.quote}"</p>
-                  <div>
-                    <p className="font-semibold">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-3xl">
@@ -259,12 +224,14 @@ export default function LandingPage() {
             <p className="text-xl text-gray-600">Everything you need to know about BusinessFlow</p>
           </div>
           <Accordion type="single" collapsible className="w-full">
-            {faq.map((item, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
-                <AccordionContent className="text-gray-600">{item.a}</AccordionContent>
-              </AccordionItem>
-            ))}
+            {faq
+              .filter((item) => item.q !== "Is there a free trial?")
+              .map((item, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
+                  <AccordionContent className="text-gray-600">{item.a}</AccordionContent>
+                </AccordionItem>
+              ))}
           </Accordion>
         </div>
       </section>
@@ -276,7 +243,7 @@ export default function LandingPage() {
           <p className="text-xl mb-8 opacity-90">Join thousands of freelancers who've already made the switch</p>
           <Link href="/signup">
             <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              Start Your Free Trial
+              Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

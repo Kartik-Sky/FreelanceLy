@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Play, Pause, Square, Plus, Edit, Trash2, Clock, Calendar } from "lucide-react"
+import { Plus, Edit, Trash2, Clock, Calendar, Search } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
 
 // Mock data
@@ -28,6 +28,8 @@ const timeEntriesData = [
     date: "2024-01-20",
     project: "Website Redesign",
     client: "Acme Corp",
+    startTime: "09:00",
+    endTime: "13:30",
     hours: 4.5,
     notes: "Worked on homepage layout and responsive design",
     billable: true,
@@ -37,6 +39,8 @@ const timeEntriesData = [
     date: "2024-01-19",
     project: "Mobile App",
     client: "Tech Startup",
+    startTime: "10:00",
+    endTime: "16:00",
     hours: 6,
     notes: "Implemented user authentication flow",
     billable: true,
@@ -46,6 +50,8 @@ const timeEntriesData = [
     date: "2024-01-19",
     project: "Brand Identity",
     client: "Local Business",
+    startTime: "14:00",
+    endTime: "16:30",
     hours: 2.5,
     notes: "Logo design iterations and color palette",
     billable: true,
@@ -55,6 +61,8 @@ const timeEntriesData = [
     date: "2024-01-18",
     project: "Internal",
     client: "BusinessFlow",
+    startTime: "09:00",
+    endTime: "10:00",
     hours: 1,
     notes: "Administrative tasks and invoicing",
     billable: false,
@@ -70,68 +78,112 @@ const projectsData = [
 
 export default function TimeTrackingPage() {
   const [timeEntries, setTimeEntries] = useState(timeEntriesData)
-  const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [currentProject, setCurrentProject] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState(null)
   const [newEntry, setNewEntry] = useState({
     date: new Date().toISOString().split("T")[0],
     projectId: "",
-    hours: "",
+    startTime: "",
+    endTime: "",
     notes: "",
     billable: true,
   })
 
-  // Timer effect
-  useEffect(() => {
-    let interval;
-    if (isTimerRunning) {
-      interval = setInterval(() => {
-        setCurrentTime((time) => time + 1)
-      }, 1000)
-    }
-    return () => clearInterval(interval)
-  }, [isTimerRunning])
-
-  const formatTime = (seconds) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const startTimer = () => {
-    if (currentProject) {
-      setIsTimerRunning(true)
-    }
-  }
-
-  const pauseTimer = () => {
-    setIsTimerRunning(false)
-  }
-
-  const stopTimer = () => {
-    setIsTimerRunning(false)
-    if (currentTime > 0) {
-      // Save time entry
-      const hours = currentTime / 3600
-      // Add to time entries
-    }
-    setCurrentTime(0)
-    setCurrentProject("")
+  const calculateHours = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0
+    const start = new Date(`2000-01-01T${startTime}:00`)
+    const end = new Date(`2000-01-01T${endTime}:00`)
+    const diffMs = end.getTime() - start.getTime()
+    return Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100
   }
 
   const handleAddEntry = () => {
-    // Add time entry logic
+    const selectedProject = projectsData.find((p) => p.id.toString() === newEntry.projectId)
+    const hours = calculateHours(newEntry.startTime, newEntry.endTime)
+
+    const newTimeEntry = {
+      id: timeEntries.length + 1,
+      date: newEntry.date,
+      project: selectedProject?.name || "",
+      client: selectedProject?.client || "",
+      startTime: newEntry.startTime,
+      endTime: newEntry.endTime,
+      hours: hours,
+      notes: newEntry.notes,
+      billable: newEntry.billable,
+    }
+
+    setTimeEntries([...timeEntries, newTimeEntry])
     setIsAddDialogOpen(false)
     setNewEntry({
       date: new Date().toISOString().split("T")[0],
       projectId: "",
-      hours: "",
+      startTime: "",
+      endTime: "",
       notes: "",
       billable: true,
     })
   }
+
+  const handleEditEntry = (entry) => {
+    setEditingEntry(entry)
+    setNewEntry({
+      date: entry.date,
+      projectId: projectsData.find((p) => p.name === entry.project)?.id.toString() || "",
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      notes: entry.notes,
+      billable: entry.billable,
+    })
+    setIsAddDialogOpen(true)
+  }
+
+  const handleUpdateEntry = () => {
+    if (!editingEntry) return
+
+    const selectedProject = projectsData.find((p) => p.id.toString() === newEntry.projectId)
+    const hours = calculateHours(newEntry.startTime, newEntry.endTime)
+
+    const updatedEntries = timeEntries.map((entry) =>
+      entry.id === editingEntry.id
+        ? {
+            ...entry,
+            date: newEntry.date,
+            project: selectedProject?.name || "",
+            client: selectedProject?.client || "",
+            startTime: newEntry.startTime,
+            endTime: newEntry.endTime,
+            hours: hours,
+            notes: newEntry.notes,
+            billable: newEntry.billable,
+          }
+        : entry,
+    )
+
+    setTimeEntries(updatedEntries)
+    setIsAddDialogOpen(false)
+    setEditingEntry(null)
+    setNewEntry({
+      date: new Date().toISOString().split("T")[0],
+      projectId: "",
+      startTime: "",
+      endTime: "",
+      notes: "",
+      billable: true,
+    })
+  }
+
+  const handleDeleteEntry = (id) => {
+    setTimeEntries(timeEntries.filter((entry) => entry.id !== id))
+  }
+
+  const filteredEntries = timeEntries.filter(
+    (entry) =>
+      entry.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.notes.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
   const totalHours = timeEntries.reduce((sum, entry) => sum + entry.hours, 0)
   const billableHours = timeEntries.filter((entry) => entry.billable).reduce((sum, entry) => sum + entry.hours, 0)
@@ -143,19 +195,37 @@ export default function TimeTrackingPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Time Tracking</h1>
-            <p className="text-gray-600">Track your work hours and manage time entries</p>
+            <p className="text-gray-600">Manage your timesheet and track work hours</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog
+            open={isAddDialogOpen}
+            onOpenChange={(open) => {
+              setIsAddDialogOpen(open)
+              if (!open) {
+                setEditingEntry(null)
+                setNewEntry({
+                  date: new Date().toISOString().split("T")[0],
+                  projectId: "",
+                  startTime: "",
+                  endTime: "",
+                  notes: "",
+                  billable: true,
+                })
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Entry
+                Add Time Entry
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px] bg-white">
               <DialogHeader>
-                <DialogTitle>Add Time Entry</DialogTitle>
-                <DialogDescription>Manually add a time entry for completed work.</DialogDescription>
+                <DialogTitle>{editingEntry ? "Edit Time Entry" : "Add Time Entry"}</DialogTitle>
+                <DialogDescription>
+                  {editingEntry ? "Update your time entry details" : "Add a new time entry to your timesheet"}
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
@@ -191,19 +261,37 @@ export default function TimeTrackingPage() {
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="hours" className="text-right">
-                    Hours
+                  <Label htmlFor="startTime" className="text-right">
+                    Start Time
                   </Label>
                   <Input
-                    id="hours"
-                    type="number"
-                    step="0.25"
-                    placeholder="0.00"
-                    value={newEntry.hours}
-                    onChange={(e) => setNewEntry({ ...newEntry, hours: e.target.value })}
+                    id="startTime"
+                    type="time"
+                    value={newEntry.startTime}
+                    onChange={(e) => setNewEntry({ ...newEntry, startTime: e.target.value })}
                     className="col-span-3"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="endTime" className="text-right">
+                    End Time
+                  </Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={newEntry.endTime}
+                    onChange={(e) => setNewEntry({ ...newEntry, endTime: e.target.value })}
+                    className="col-span-3"
+                  />
+                </div>
+                {newEntry.startTime && newEntry.endTime && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right">Total Hours</Label>
+                    <div className="col-span-3 text-sm text-gray-600">
+                      {calculateHours(newEntry.startTime, newEntry.endTime)} hours
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="notes" className="text-right">
                     Notes
@@ -216,64 +304,38 @@ export default function TimeTrackingPage() {
                     className="col-span-3"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="billable" className="text-right">
+                    Billable
+                  </Label>
+                  <div className="col-span-3">
+                    <Select
+                      value={newEntry.billable.toString()}
+                      onValueChange={(value) => setNewEntry({ ...newEntry, billable: value === "true" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Billable</SelectItem>
+                        <SelectItem value="false">Non-billable</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
               <DialogFooter>
-                <Button type="submit" onClick={handleAddEntry}>
-                  Add Entry
+                <Button
+                  type="submit"
+                  onClick={editingEntry ? handleUpdateEntry : handleAddEntry}
+                  disabled={!newEntry.projectId || !newEntry.startTime || !newEntry.endTime}
+                >
+                  {editingEntry ? "Update Entry" : "Add Entry"}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
-
-        {/* Timer Widget */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="h-5 w-5" />
-              <span>Current Timer</span>
-            </CardTitle>
-            <CardDescription>Track time in real-time for your current task</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="text-4xl font-mono font-bold">{formatTime(currentTime)}</div>
-                <div className="space-y-2">
-                  <Select value={currentProject} onValueChange={setCurrentProject}>
-                    <SelectTrigger className="w-[250px]">
-                      <SelectValue placeholder="Select project to track" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projectsData.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name} - {project.client}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                {!isTimerRunning ? (
-                  <Button onClick={startTimer} disabled={!currentProject}>
-                    <Play className="mr-2 h-4 w-4" />
-                    Start
-                  </Button>
-                ) : (
-                  <Button onClick={pauseTimer} variant="outline">
-                    <Pause className="mr-2 h-4 w-4" />
-                    Pause
-                  </Button>
-                )}
-                <Button onClick={stopTimer} variant="destructive" disabled={currentTime === 0}>
-                  <Square className="mr-2 h-4 w-4" />
-                  Stop
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -284,7 +346,7 @@ export default function TimeTrackingPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalHours.toFixed(1)}h</div>
-              <p className="text-xs text-muted-foreground">This week</p>
+              <p className="text-xs text-muted-foreground">This period</p>
             </CardContent>
           </Card>
 
@@ -305,24 +367,39 @@ export default function TimeTrackingPage() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{((billableHours / totalHours) * 100).toFixed(0)}%</div>
+              <div className="text-2xl font-bold">
+                {totalHours > 0 ? ((billableHours / totalHours) * 100).toFixed(0) : 0}%
+              </div>
               <p className="text-xs text-muted-foreground">Billable ratio</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Time Entries Table */}
+        {/* Timesheet */}
         <Card>
           <CardHeader>
-            <CardTitle>Time Entries</CardTitle>
-            <CardDescription>View and manage your recorded time entries</CardDescription>
+            <CardTitle>Timesheet</CardTitle>
+            <CardDescription>View and manage your time entries</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex items-center space-x-2 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search time entries..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Project</TableHead>
+                  <TableHead>Time</TableHead>
                   <TableHead>Hours</TableHead>
                   <TableHead>Notes</TableHead>
                   <TableHead>Billable</TableHead>
@@ -330,7 +407,7 @@ export default function TimeTrackingPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {timeEntries.map((entry) => (
+                {filteredEntries.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell>{entry.date}</TableCell>
                     <TableCell>
@@ -338,6 +415,9 @@ export default function TimeTrackingPage() {
                         <div className="font-medium">{entry.project}</div>
                         <div className="text-sm text-muted-foreground">{entry.client}</div>
                       </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {entry.startTime} - {entry.endTime}
                     </TableCell>
                     <TableCell className="font-mono">{entry.hours}h</TableCell>
                     <TableCell className="max-w-xs truncate">{entry.notes}</TableCell>
@@ -348,10 +428,10 @@ export default function TimeTrackingPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditEntry(entry)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteEntry(entry.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
