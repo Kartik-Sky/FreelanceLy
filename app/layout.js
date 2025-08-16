@@ -61,6 +61,21 @@ function DevNavigation() {
               Account
             </Button>
           </Link>
+          <Link href="/expenses">
+            <Button variant="ghost" size="sm">
+              Expenses
+            </Button>
+          </Link>
+          <Link href="/invoices">
+            <Button variant="ghost" size="sm">
+              Invoices
+            </Button>
+          </Link>
+          <Link href="/payments">
+            <Button variant="ghost" size="sm">
+              Payments
+            </Button>
+          </Link>
           <Link href="/components">
             <Button variant="ghost" size="sm">
               Components

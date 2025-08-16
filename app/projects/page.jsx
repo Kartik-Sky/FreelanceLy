@@ -163,9 +163,9 @@ export default function ProjectsPage() {
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select client" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       {clientsData.map((client) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
+                        <SelectItem key={client.id} value={client.id.toString()} className="hover:bg-gray-200">
                           {client.name}
                         </SelectItem>
                       ))}

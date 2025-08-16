@@ -1,13 +1,13 @@
 "use client"
 
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { TrendingUp, Mail, Lock, Chrome } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { TrendingUp, Mail, Lock, Chrome, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -15,11 +15,47 @@ export default function LoginPage() {
     email: "",
     password: "",
   })
+  
+  const [responseType, setResponseType] = useState("") // "success" or "error"
+  const [responseMessage, setResponseMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log("Login:", formData)
+    setIsLoading(true)
+    setResponseType("")
+    setResponseMessage("")
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+      
+      const data = await res.json()
+
+      if (res.ok) {
+        setResponseType("success")
+        setResponseMessage("Login successful!")
+        // Here you might redirect the user or update app state
+        setTimeout(() => {
+          // Redirect logic here
+          console.log("Redirecting user...")
+        }, 1500)
+      } else {
+        setResponseType("error")
+        setResponseMessage(data.message || "Login failed. Please check your credentials.")
+      }
+    } catch (error) {
+      setResponseType("error")
+      setResponseMessage("An error occurred. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGoogleLogin = () => {
@@ -44,6 +80,26 @@ export default function LoginPage() {
             <CardDescription>Sign in to your account to continue</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+              {/* Status Container */}
+              {responseMessage && (
+                  <Alert
+                    className={`flex items-center space-x-2 ${
+                      responseType === "success"
+                        ? "border-green-200 bg-green-50 text-green-800"
+                        : "border-red-200 bg-red-50 text-red-800"
+                    }`}
+                  >
+                    {responseType === "success" ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <XCircle className="h-4 w-4" />
+                    )}
+                    <AlertDescription className="text-sm">
+                      {responseMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
             {/* Google Login */}
             <Button variant="outline" className="w-full bg-transparent" onClick={handleGoogleLogin}>
               <Chrome className="mr-2 h-4 w-4" />
@@ -73,6 +129,7 @@ export default function LoginPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -80,7 +137,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                  <Link href="/login/forgot-password" className="text-sm text-blue-600 hover:underline">
                     Forgot password?
                   </Link>
                 </div>
@@ -94,12 +151,13 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 

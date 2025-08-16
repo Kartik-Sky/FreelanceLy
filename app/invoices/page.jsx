@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,11 +15,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, FileText, Send, Download, Search, Eye } from "lucide-react"
+import { Plus, Edit, Trash2, FileText, Send, Download, Search, Eye, X } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
+import { useSearchParams, useRouter} from 'next/navigation'
+
 
 // Mock data
 const invoicesData = [
@@ -33,8 +36,8 @@ const invoicesData = [
     dueDate: "2024-02-15",
     createdDate: "2024-01-15",
     items: [
-      { description: "Website Design", quantity: 1, rate: 1500, amount: 1500 },
-      { description: "Development", quantity: 1, rate: 900, amount: 900 },
+      {name:"Designing", description: "Website Design", quantity: 1, rate: 1500, amount: 1500 },
+      {name:"Develop The work", description: "Development", quantity: 1, rate: 900, amount: 900 },
     ],
   },
   {
@@ -90,6 +93,8 @@ const projectsData = [
 ]
 
 export default function InvoicesPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [invoices, setInvoices] = useState(invoicesData)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -99,7 +104,7 @@ export default function InvoicesPage() {
     clientId: "",
     projectId: "",
     dueDate: "",
-    items: [{ description: "", quantity: 1, rate: 0 }],
+    items: [{name:"", description: "", quantity: 1, rate: 0 }],
     notes: "",
   })
 
@@ -136,7 +141,7 @@ export default function InvoicesPage() {
       clientId: "",
       projectId: "",
       dueDate: "",
-      items: [{ description: "", quantity: 1, rate: 0 }],
+      items: [{name:"", description: "", quantity: 1, rate: 0 }],
       notes: "",
     })
   }
@@ -144,7 +149,7 @@ export default function InvoicesPage() {
   const handleAddItem = () => {
     setNewInvoice({
       ...newInvoice,
-      items: [...newInvoice.items, { description: "", quantity: 1, rate: 0 }],
+      items: [...newInvoice.items, {name:"", description: "", quantity: 1, rate: 0 }],
     })
   }
 
@@ -200,7 +205,17 @@ export default function InvoicesPage() {
   const pendingInvoices = invoices
     .filter((invoice) => invoice.status === "Sent")
     .reduce((sum, invoice) => sum + invoice.amount, 0)
-
+    
+    
+    useEffect(() => {
+      const shouldOpen = searchParams.get("create") === "true"
+      if (shouldOpen) {
+        setIsAddDialogOpen(true)
+        // Clean URL so it doesn’t reopen on refresh
+        router.replace('/invoices', { scroll: false })
+      }
+    }, [searchParams])
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -220,7 +235,7 @@ export default function InvoicesPage() {
                   clientId: "",
                   projectId: "",
                   dueDate: "",
-                  items: [{ description: "", quantity: 1, rate: 0 }],
+                  items: [{name:"", description: "", quantity: 1, rate: 0 }],
                   notes: "",
                 })
               }
@@ -232,7 +247,8 @@ export default function InvoicesPage() {
                 Create Invoice
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[1200px] max-h-[80vh] overflow-y-auto bg-white">
+
               <DialogHeader>
                 <DialogTitle>Create New Invoice</DialogTitle>
                 <DialogDescription>Create a new invoice for your client</DialogDescription>
@@ -249,9 +265,9 @@ export default function InvoicesPage() {
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select client" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white z-50 ">
                       {clientsData.map((client) => (
-                        <SelectItem key={client.id} value={client.id.toString()}>
+                        <SelectItem key={client.id} value={client.id.toString()} className="hover:bg-gray-200">
                           {client.name}
                         </SelectItem>
                       ))}
@@ -269,9 +285,9 @@ export default function InvoicesPage() {
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white z-50 ">
                       {projectsData.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
+                        <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-gray-200">
                           {project.name} - {project.client}
                         </SelectItem>
                       ))}
@@ -293,15 +309,31 @@ export default function InvoicesPage() {
 
                 {/* Invoice Items */}
                 <div className="col-span-4">
-                  <Label className="text-sm font-medium">Invoice Items</Label>
+                  <Label className="text-sm font-medium mb-4">Invoice Items</Label>
                   <div className="space-y-2 mt-2">
+                    {/* Header Row */}
+                    <div className="grid grid-cols-13 gap-2 text-xs text-muted-foreground font-medium px-1">
+                      <div className="col-span-2">Item</div>
+                      <div className="col-span-4">Description</div>
+                      <div className="col-span-2">Qty</div>
+                      <div className="col-span-2">Rate</div>
+                      <div className="col-span-2">Amount</div>
+                      <div className="col-span-2"></div>
+                    </div>
+
                     {newInvoice.items.map((item, index) => (
-                      <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                      <div key={index} className="grid grid-cols-13 gap-2 items-center">
+                        <Input
+                          placeholder="Item Name"
+                          value={item.name}
+                          onChange={(e) => handleItemChange(index, "name", e.target.value)}
+                          className="col-span-2"
+                        />
                         <Input
                           placeholder="Description"
                           value={item.description}
                           onChange={(e) => handleItemChange(index, "description", e.target.value)}
-                          className="col-span-5"
+                          className="col-span-4"
                         />
                         <Input
                           type="number"
@@ -330,13 +362,16 @@ export default function InvoicesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
+
                     ))}
-                    <Button variant="outline" size="sm" onClick={handleAddItem}>
+
+                    <Button variant="outline" size="sm" onClick={handleAddItem} className = "mt-3">
                       <Plus className="mr-2 h-4 w-4" />
                       Add Item
                     </Button>
                   </div>
                 </div>
+
 
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label className="text-right font-medium">Total</Label>
@@ -352,7 +387,7 @@ export default function InvoicesPage() {
                     placeholder="Additional notes or terms"
                     value={newInvoice.notes}
                     onChange={(e) => setNewInvoice({ ...newInvoice, notes: e.target.value })}
-                    className="col-span-3"
+                    className="col-span-6"
                   />
                 </div>
               </div>

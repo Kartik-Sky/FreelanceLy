@@ -1,6 +1,5 @@
-"use client";
+"use client"
 
-import React from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,15 +13,16 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+  useSidebar,
+} from "@/components/ui/sidebar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Home,
   Users,
@@ -36,9 +36,9 @@ import {
   TrendingUp,
   FolderOpen,
   Component,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+} from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -49,30 +49,38 @@ const navigation = [
   { name: "Invoices", href: "/invoices", icon: FileText },
   { name: "Payments", href: "/payments", icon: CreditCard },
   { name: "Components", href: "/components", icon: Component },
-];
+]
 
 function AppSidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname()
+  const { state } = useSidebar()
+  const isCollapsed = state === "collapsed"
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center space-x-20 px-2">
-          <TrendingUp className="h-6 w-6 text-blue-600" />
-          <span className="text-lg font-bold">BusinessFlow</span>
+        <div className="flex items-center space-x-2 px-2">
+          <TrendingUp className="h-6 w-6 text-blue-600 flex-shrink-0" />
+          {!isCollapsed && (
+            <span className="text-lg font-bold">BusinessFlow</span>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          {!isCollapsed && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={pathname === item.href}>
+                <SidebarMenuItem key={item.name} className="hover:bg-gray-200">
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={pathname === item.href}
+                    // tooltip={isCollapsed ? item.name : undefined}
+                  >
                     <Link href={item.href}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {!isCollapsed && <span>{item.name}</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -82,33 +90,39 @@ function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
+        <SidebarMenu className="hover:bg-gray-200 py-2">
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton>
-                  <Avatar className="h-6 w-6">
+                <SidebarMenuButton 
+                  className="cursor-pointer"
+                  // tooltip={isCollapsed ? "John Doe" : undefined}
+                >
+                  <Avatar className="h-6 w-6 flex-shrink-0">
                     <AvatarImage src="/placeholder.svg" />
                     <AvatarFallback>JD</AvatarFallback>
                   </Avatar>
-                  <span>John Doe</span>
+                  {!isCollapsed && <span>John Doe</span>}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
-                <DropdownMenuItem asChild>
+              <DropdownMenuContent 
+                side={isCollapsed ? "right" : "top"} 
+                className="w-(--radix-popper-anchor-width)"
+              >
+                <DropdownMenuItem asChild className="hover:bg-gray-200 cursor-pointer">
                   <Link href="/account">
                     <User className="mr-2 h-4 w-4" />
                     Account
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="hover:bg-gray-200 cursor-pointer">
                   <Link href="/account">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem className="hover:bg-red-200 bg-red-100 cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>
@@ -118,10 +132,12 @@ function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({
+  children,
+}) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -132,5 +148,5 @@ export default function DashboardLayout({ children }) {
         <div className="p-6">{children}</div>
       </main>
     </SidebarProvider>
-  );
+  )
 }

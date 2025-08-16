@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Plus, Edit, Trash2, Clock, Calendar, Search } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
+import { useSearchParams, useRouter} from 'next/navigation'
 
 // Mock data
 const timeEntriesData = [
@@ -77,6 +78,8 @@ const projectsData = [
 ]
 
 export default function TimeTrackingPage() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [timeEntries, setTimeEntries] = useState(timeEntriesData)
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -187,7 +190,15 @@ export default function TimeTrackingPage() {
 
   const totalHours = timeEntries.reduce((sum, entry) => sum + entry.hours, 0)
   const billableHours = timeEntries.filter((entry) => entry.billable).reduce((sum, entry) => sum + entry.hours, 0)
-
+    useEffect(() => {
+      const shouldOpen = searchParams.get("create") === "true"
+      if (shouldOpen) {
+        setIsAddDialogOpen(true)
+        // Clean URL so it doesn’t reopen on refresh
+        router.replace('/time-tracking', { scroll: false })
+      }
+    }, [searchParams])
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -220,14 +231,14 @@ export default function TimeTrackingPage() {
                 Add Time Entry
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-white">
+            <DialogContent className="sm:max-w-[800px] bg-white">
               <DialogHeader>
                 <DialogTitle>{editingEntry ? "Edit Time Entry" : "Add Time Entry"}</DialogTitle>
                 <DialogDescription>
                   {editingEntry ? "Update your time entry details" : "Add a new time entry to your timesheet"}
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 ">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="date" className="text-right">
                     Date
@@ -251,9 +262,9 @@ export default function TimeTrackingPage() {
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white">
                       {projectsData.map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
+                        <SelectItem key={project.id} value={project.id.toString()} className="hover:bg-gray-200">
                           {project.name} - {project.client}
                         </SelectItem>
                       ))}

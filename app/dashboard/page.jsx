@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import { DollarSign, TrendingUp, Clock, FileText, AlertCircle, Plus } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
 
@@ -44,14 +45,18 @@ export default function Dashboard() {
             <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
           </div>
           <div className="flex space-x-2">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Log Time
-            </Button>
-            <Button variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              Create Invoice
-            </Button>
+            <Link href="/time-tracking?create=true">
+              <Button className="hover:bg-gray-100">
+                <Plus className="mr-2 h-4 w-4" />
+                Log Time
+              </Button>
+            </Link>
+            <Link href="/invoices?create=true">
+              <Button variant="outline" className="hover:bg-gray-100">
+                <FileText className="mr-2 h-4 w-4" />
+                Create Invoice
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -197,15 +202,15 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button className="h-20 flex-col space-y-2">
+              <Button variant="outline" className="h-20 flex-col space-y-2 bg-transparent hover:bg-gray-200">
                 <Clock className="h-6 w-6" />
                 <span>Log Time</span>
               </Button>
-              <Button variant="outline" className="h-20 flex-col space-y-2 bg-transparent">
+              <Button variant="outline" className="h-20 flex-col space-y-2 bg-transparent hover:bg-gray-200">
                 <DollarSign className="h-6 w-6" />
                 <span>Add Expense</span>
               </Button>
-              <Button variant="outline" className="h-20 flex-col space-y-2 bg-transparent">
+              <Button variant="outline" className="h-20 flex-col space-y-2 bg-transparent hover:bg-gray-200">
                 <FileText className="h-6 w-6" />
                 <span>Create Invoice</span>
               </Button>
